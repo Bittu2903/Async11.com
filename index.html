@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Browser-Only ATS Matcher</title>
+  <script src="https://tailwindcss.com"></script>
+  <!-- Puter.js provides zero-backend AI chat directly from the browser -->
+  <script src="https://puter.com"></script>
+  <!-- PDF.js for parsing PDF files client-side in JS -->
+  <script src="https://cloudflare.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen p-6">
+  <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-md border border-slate-200">
+    <h1 class="text-2xl font-bold text-indigo-600 mb-1">Zero-Backend ATS Matcher</h1>
+    <p class="text-xs text-slate-500 mb-6">Runs completely in-browser via Puter.js AI and PDF.js</p>
+
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold mb-1">Job Description</label>
+        <textarea id="jd" rows="4" class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Paste the job description or required skills..."></textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold mb-1">Upload Resume (PDF)</label>
+        <input type="file" id="resume" accept="application/pdf" class="w-full text-sm p-2 border rounded-lg bg-slate-50">
+      </div>
+
+      <button id="scanBtn" onclick="runATSCheck()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition">
+        Analyze Match Score
+      </button>
+    </div>
+
+    <!-- Output Box -->
+    <div id="results" class="mt-6 pt-6 border-t hidden">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-gray-600 font-medium">ATS Match Score</span>
+        <span id="score" class="text-3xl font-extrabold text-indigo-600">0%</span>
+      </div>
+
+      <div class="mb-4">
+        <span class="text-sm font-semibold text-rose-600 block mb-1">Missing Keywords & Skills:</span>
+        <ul id="keywords" class="list-disc list-inside text-sm text-slate-600 space-y-1"></ul>
+      </div>
+
+      <div>
+        <span class="text-sm font-semibold text-slate-700 block mb-1">Improvement Summary:</span>
+        <p id="summary" class="text-sm text-slate-600 bg-slate-100 p-3 rounded-md"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cloudflare.com';
+
+    // 1. Extract text from uploaded PDF client-side
+    async function extractTextFromPDF(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(item => item.str).join(' ') + ' ';
+      }
+      return text;
+    }
+
+    // 2. Main matcher logic running entirely through open in-browser AI
+    async function runATSCheck() {
+      const jd = document.getElementById('jd').value.trim();
+      const file = document.getElementById('resume').files[0];
+      const btn = document.getElementById('scanBtn');
+
+      if (!jd || !file) {
+        alert('Please provide both the Job Description and a PDF Resume.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Extracting and Analyzing...';
+
+      try {
+        const resumeText = await extractTextFromPDF(file);
+
+        // Puter.js AI Call - executes directly without an API key or server
+        const prompt = `
+          Act as an Applicant Tracking System (ATS) matching algorithm.
+          Compare the resume against the job description.
+
+          JOB DESCRIPTION:
+          ${jd}
+
+          RESUME CONTENT:
+          ${resumeText}
+
+          Respond with ONLY a raw JSON object formatted like this:
+          {
+            "score": 85,
+            "missing_keywords": ["keyword1", "keyword2"],
+            "summary": "Brief 2-sentence optimization tip."
+          }
+        `;
+
+        const response = await puter.ai.chat(prompt);
+        const parsed = JSON.parse(response.toString().replace(/```json|```/g, '').trim());
+
+        // Update UI
+        document.getElementById('score').innerText = `${parsed.score}%`;
+        const list = document.getElementById('keywords');
+        list.innerHTML = '';
+        parsed.missing_keywords.forEach(kw => {
+          const li = document.createElement('li');
+          li.innerText = kw;
+          list.appendChild(li);
+        });
+        document.getElementById('summary').innerText = parsed.summary;
+        document.getElementById('results').classList.remove('hidden');
+
+      } catch (err) {
+        alert('Error processing file. Ensure your resume contains parsable text.');
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Analyze Match Score';
+      }
+    }
+  </script>
+</body>
+</html>
