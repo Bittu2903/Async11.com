@@ -1,129 +1,867 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Browser-Only ATS Matcher</title>
-  <script src="https://tailwindcss.com"></script>
-  <!-- Puter.js provides zero-backend AI chat directly from the browser -->
-  <script src="https://puter.com"></script>
-  <!-- PDF.js for parsing PDF files client-side in JS -->
-  <script src="https://cloudflare.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Async11 — We build like it's the only shot we've got.</title>
+<meta name="description" content="Async11 is a full-throttle tech studio: web, Android, cloud, AI, QA, automation and staffing, all under one roof, for founders and companies who don't do half-measures.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23121214'/%3E%3Ctext x='50' y='68' font-family='Georgia' font-size='58' font-weight='900' fill='%23FF5A1F' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --stage:#121214;
+    --stage-2:#1B1B1F;
+    --stage-3:#232328;
+    --paper:#F5F1E8;
+    --paper-dim:#E7E1D3;
+    --ink:#17161A;
+    --orange:#FF5A1F;
+    --orange-dim:#C7440F;
+    --amber:#F2B705;
+    --teal:#2AD6BE;
+    --muted:#9A98A3;
+    --line: rgba(245,241,232,0.14);
+    --line-ink: rgba(23,22,26,0.14);
+    --shadow-glow: 0 0 40px rgba(255,90,31,0.35);
+    --ff-display: 'Big Shoulders Display', sans-serif;
+    --ff-body: 'IBM Plex Sans', sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--stage);
+    color:var(--paper);
+    font-family:var(--ff-body);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  img,svg{display:block;max-width:100%;}
+  a{color:inherit;}
+  button{font-family:inherit;cursor:pointer;}
+  h1,h2,h3{
+    font-family:var(--ff-display);
+    font-weight:800;
+    line-height:0.95;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  p{margin:0;}
+  section{padding:7rem 6vw;position:relative;}
+  @media (max-width:900px){ section{padding:5rem 6vw;} }
+  .wrap{max-width:1180px;margin:0 auto;}
+  .eyebrow-free{ } /* intentionally no tracked-caps eyebrow labels used anywhere */
+
+  :focus-visible{
+    outline:3px solid var(--orange);
+    outline-offset:3px;
+    border-radius:4px;
+  }
+
+  /* ---------- NAV ---------- */
+  header.nav{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:1.1rem 6vw;
+    background:rgba(18,18,20,0.72);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  .logo{
+    display:flex;align-items:baseline;gap:2px;
+    font-family:var(--ff-display);
+    font-weight:800;font-size:1.5rem;
+    text-decoration:none;color:var(--paper);
+  }
+  .logo span.badge{
+    display:inline-flex;align-items:center;justify-content:center;
+    background:var(--orange);color:var(--stage);
+    font-family:var(--ff-display);font-weight:800;
+    font-size:1rem;padding:0 6px;border-radius:5px;
+    transform:translateY(-2px);
+  }
+  nav.links{display:flex;align-items:center;gap:2.1rem;}
+  nav.links a.navlink{
+    font-size:0.95rem;font-weight:500;text-decoration:none;color:var(--paper);
+    opacity:0.82;transition:opacity .18s ease;
+  }
+  nav.links a.navlink:hover{opacity:1;}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+    border-radius:999px;border:1px solid transparent;
+    padding:0.85rem 1.6rem;font-size:0.95rem;font-weight:600;
+    text-decoration:none;transition:transform .15s ease, background .15s ease, box-shadow .15s ease, border-color .15s ease;
+    white-space:nowrap;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--orange);color:var(--stage);}
+  .btn-primary:hover{background:#ff6c38;box-shadow:var(--shadow-glow);}
+  .btn-outline{background:transparent;color:var(--paper);border-color:var(--line);}
+  .btn-outline:hover{border-color:var(--paper);}
+  .btn-dark{background:var(--stage);color:var(--paper);border-color:rgba(0,0,0,0.15);}
+  .btn-dark:hover{transform:translateY(-2px);}
+
+  .nav-cta{display:flex;align-items:center;gap:0.9rem;}
+  .burger{display:none;background:none;border:0;color:var(--paper);padding:.4rem;}
+  .burger svg{width:26px;height:26px;}
+
+  @media (max-width:860px){
+    nav.links{
+      position:fixed;inset:0 0 auto 0;top:64px;
+      background:var(--stage);
+      flex-direction:column;align-items:flex-start;
+      padding:1.5rem 6vw 2rem;
+      border-bottom:1px solid var(--line);
+      transform:translateY(-130%);
+      transition:transform .28s ease;
+      gap:1.1rem;
+    }
+    nav.links.open{transform:translateY(0);}
+    .burger{display:block;}
+    .nav-cta .btn-outline{display:none;}
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding-top:9.5rem;
+    background:
+      radial-gradient(ellipse 60% 50% at 85% 15%, rgba(255,90,31,0.16), transparent 60%),
+      radial-gradient(ellipse 50% 40% at 5% 90%, rgba(42,214,190,0.10), transparent 60%),
+      var(--stage);
+    overflow:hidden;
+  }
+  .hero-grid{
+    display:grid;grid-template-columns:1.15fr 0.85fr;gap:3.5rem;align-items:center;
+  }
+  @media (max-width:960px){ .hero-grid{grid-template-columns:1fr;} }
+
+  .hero h1{
+    font-size:clamp(2.6rem, 5.4vw, 4.7rem);
+    color:var(--paper);
+  }
+  .hero-sub{
+    margin-top:1.6rem;max-width:46ch;
+    font-size:1.14rem;color:var(--muted);
+  }
+  .hero-actions{margin-top:2.4rem;display:flex;gap:1rem;flex-wrap:wrap;}
+
+  .ticker-wrap{
+    margin-top:4rem;overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+            mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .ticker{display:flex;gap:2.4rem;width:max-content;animation:ticker 32s linear infinite;}
+  @keyframes ticker{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+  .ticker span{
+    font-size:0.85rem;color:var(--muted);
+    padding:0.45rem 0.95rem;border:1px solid var(--line);border-radius:999px;
+  }
+  @media (prefers-reduced-motion: reduce){ .ticker{animation:none;} }
+  .ticker-wrap:hover .ticker{ animation-play-state: paused; }
+
+  /* ---------- DIAL ---------- */
+  .dial-card{
+    display:flex;flex-direction:column;align-items:center;
+    background:var(--stage-2);border:1px solid var(--line);
+    border-radius:28px;padding:2.4rem 1.6rem 2rem;
+    text-align:center;
+  }
+  .dial-outer{position:relative;width:min(300px, 68vw);aspect-ratio:1/1;}
+  .dial-svg{width:100%;height:100%;}
+  .dial-value{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-family:var(--ff-display);font-size:3.6rem;font-weight:800;color:var(--paper);
+    pointer-events:none;
+  }
+  .dial-knob-hit{
+    position:absolute;inset:0;cursor:grab;
+    touch-action:none;
+  }
+  .dial-knob-hit:active{cursor:grabbing;}
+  .dial-caption{
+    margin-top:1.4rem;font-size:0.95rem;color:var(--muted);min-height:1.4em;
+    transition:color .2s ease;
+  }
+  .dial-card.maxed .dial-caption{color:var(--amber);font-weight:600;}
+  .dial-card.maxed{border-color:var(--orange);box-shadow:0 0 60px rgba(255,90,31,0.28);}
+  .spark{
+    position:absolute;border-radius:50%;background:var(--amber);width:6px;height:6px;
+    opacity:0;pointer-events:none;
+  }
+  .dial-card.maxed .spark{animation:spark-burst 0.9s ease-out forwards;}
+  @keyframes spark-burst{
+    0%{opacity:1;transform:translate(0,0) scale(1);}
+    100%{opacity:0;transform:translate(var(--dx), var(--dy)) scale(0.3);}
+  }
+  .dial-cta{margin-top:1.2rem;height:44px;}
+  .dial-cta a{
+    opacity:0;transform:translateY(6px);pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  .dial-card.maxed .dial-cta a{opacity:1;transform:translateY(0);pointer-events:auto;}
+
+  /* ---------- STORY ---------- */
+  .story{background:var(--paper);color:var(--ink);}
+  .story-grid{display:grid;grid-template-columns:0.85fr 1.15fr;gap:4rem;align-items:start;}
+  @media (max-width:900px){ .story-grid{grid-template-columns:1fr;gap:2.5rem;} }
+  .story h2{font-size:clamp(2.1rem,3.6vw,3.1rem);color:var(--ink);}
+  .story-body p{font-size:1.08rem;color:#3A3835;max-width:60ch;}
+  .story-body p + p{margin-top:1.2rem;}
+  .story-mark{
+    width:64px;height:64px;border-radius:16px;background:var(--ink);
+    display:flex;align-items:center;justify-content:center;margin-bottom:1.4rem;
+  }
+  .story-mark svg{width:30px;height:30px;stroke:var(--paper);}
+  .story-tags{display:flex;flex-wrap:wrap;gap:0.6rem;margin-top:2rem;}
+  .story-tags span{
+    font-size:0.82rem;padding:0.4rem 0.85rem;border-radius:999px;
+    border:1px solid var(--line-ink);color:#5a564f;
+  }
+
+  /* ---------- SERVICES / RACK ---------- */
+  .rack{background:var(--stage-2);}
+  .rack-head{max-width:60ch;margin-bottom:3.2rem;}
+  .rack-head h2{font-size:clamp(2.1rem,3.6vw,3.1rem);color:var(--paper);}
+  .rack-head p{margin-top:1rem;color:var(--muted);font-size:1.06rem;}
+
+  .rack-groups{display:flex;flex-direction:column;gap:2.6rem;}
+  .rack-group-label{
+    font-family:var(--ff-display);font-weight:700;font-size:1.05rem;
+    color:var(--teal);margin-bottom:1rem;
+  }
+  .rack-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
+    gap:1rem;
+  }
+  details.channel{
+    background:var(--stage-3);border:1px solid var(--line);border-radius:16px;
+    overflow:hidden;transition:border-color .2s ease, transform .2s ease;
+  }
+  details.channel[open], details.channel.on{ border-color:rgba(255,90,31,0.55); }
+  details.channel:hover{transform:translateY(-2px);}
+  details.channel > summary{
+    list-style:none;cursor:pointer;padding:1.15rem 1.2rem;
+    display:flex;align-items:center;gap:0.9rem;
+  }
+  details.channel > summary::-webkit-details-marker{display:none;}
+  .chan-num{
+    font-family:var(--ff-display);font-weight:800;font-size:1.05rem;
+    color:var(--muted);min-width:2.6ch;
+  }
+  .chan-icon{
+    width:34px;height:34px;border-radius:10px;background:var(--stage);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .chan-icon svg{width:18px;height:18px;stroke:var(--paper);fill:none;stroke-width:1.7;}
+  .chan-title{font-weight:600;font-size:1rem;color:var(--paper);flex:1;}
+  .switch{
+    width:38px;height:20px;border-radius:999px;background:var(--stage);
+    border:1px solid var(--line);position:relative;flex-shrink:0;
+    transition:background .2s ease;
+  }
+  .switch::after{
+    content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;
+    border-radius:50%;background:var(--muted);transition:transform .2s ease, background .2s ease;
+  }
+  details.channel.on .switch{background:rgba(255,90,31,0.25);border-color:var(--orange);}
+  details.channel.on .switch::after{transform:translateX(18px);background:var(--orange);}
+  .chan-body{padding:0 1.2rem 1.3rem 4.5rem;color:var(--muted);font-size:0.96rem;max-width:52ch;}
+
+  /* ---------- PROCESS ---------- */
+  .process-head{max-width:58ch;margin-bottom:3.4rem;}
+  .process-head h2{font-size:clamp(2.1rem,3.6vw,3.1rem);}
+  .process-head p{margin-top:1rem;color:var(--muted);font-size:1.06rem;}
+  .process-path{position:relative;}
+  .process-line{
+    position:absolute;top:26px;left:26px;right:26px;height:2px;
+    background:linear-gradient(90deg, var(--orange), var(--teal));
+    opacity:0.5;
+  }
+  @media (max-width:800px){ .process-line{display:none;} }
+  .process-steps{
+    position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;
+  }
+  @media (max-width:800px){ .process-steps{grid-template-columns:1fr;gap:2.2rem;} }
+  .process-step .num{
+    width:54px;height:54px;border-radius:50%;background:var(--stage-2);
+    border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;
+    font-family:var(--ff-display);font-weight:800;font-size:1.3rem;color:var(--orange);
+    margin-bottom:1.2rem;position:relative;z-index:1;
+  }
+  .process-step h3{font-size:1.25rem;color:var(--paper);margin-bottom:0.6rem;}
+  .process-step p{color:var(--muted);font-size:0.98rem;max-width:32ch;}
+
+  /* ---------- MANIFESTO ---------- */
+  .manifesto{background:var(--orange);color:var(--stage);}
+  .manifesto-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:3.5rem;align-items:start;}
+  @media (max-width:900px){ .manifesto-grid{grid-template-columns:1fr;gap:2rem;} }
+  .manifesto h2{font-size:clamp(2.2rem,4vw,3.4rem);color:var(--stage);}
+  .manifesto-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;}
+  .manifesto-list li{
+    padding:1.1rem 0;border-top:1.5px solid rgba(18,18,20,0.28);
+    font-family:var(--ff-display);font-weight:700;font-size:1.35rem;
+    display:flex;gap:0.9rem;align-items:baseline;
+  }
+  .manifesto-list li:last-child{border-bottom:1.5px solid rgba(18,18,20,0.28);}
+  .manifesto-list li .no{font-size:0.95rem;font-weight:800;opacity:0.6;min-width:2ch;}
+  .manifesto-close{
+    margin-top:1.8rem;font-family:var(--ff-body);font-weight:600;font-size:1.08rem;
+  }
+
+  /* ---------- CONTACT ---------- */
+  .contact{background:var(--stage);}
+  .contact-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:3.5rem;}
+  @media (max-width:900px){ .contact-grid{grid-template-columns:1fr;} }
+  .contact h2{font-size:clamp(2.1rem,3.6vw,3.1rem);color:var(--paper);}
+  .contact-sub{margin-top:1rem;color:var(--muted);font-size:1.06rem;max-width:52ch;}
+
+  form.contact-form{margin-top:2.2rem;display:flex;flex-direction:column;gap:1.1rem;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;}
+  @media (max-width:560px){ .form-row{grid-template-columns:1fr;} }
+  label{font-size:0.88rem;color:var(--muted);display:block;margin-bottom:0.4rem;}
+  input, select, textarea{
+    width:100%;background:var(--stage-2);border:1px solid var(--line);
+    border-radius:10px;padding:0.85rem 1rem;color:var(--paper);font-family:inherit;font-size:0.98rem;
+    transition:border-color .15s ease;
+  }
+  input:focus, select:focus, textarea:focus{border-color:var(--orange);outline:none;}
+  textarea{min-height:120px;resize:vertical;}
+  .form-note{font-size:0.82rem;color:var(--muted);margin-top:-0.3rem;}
+  .form-submit{margin-top:0.4rem;align-self:flex-start;}
+
+  .contact-side{display:flex;flex-direction:column;gap:1rem;}
+  .contact-card{
+    background:var(--stage-2);border:1px solid var(--line);border-radius:18px;
+    padding:1.5rem 1.6rem;display:flex;align-items:center;gap:1rem;
+    text-decoration:none;color:var(--paper);transition:transform .18s ease, border-color .18s ease;
+  }
+  .contact-card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,0.3);}
+  .contact-card .cc-icon{
+    width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .contact-card .cc-icon svg{width:22px;height:22px;}
+  .cc-title{font-weight:600;font-size:1rem;}
+  .cc-sub{font-size:0.86rem;color:var(--muted);margin-top:2px;}
+  .cc-whatsapp .cc-icon{background:rgba(42,214,190,0.16);}
+  .cc-whatsapp .cc-icon svg{stroke:var(--teal);fill:var(--teal);}
+  .cc-email .cc-icon{background:rgba(255,90,31,0.16);}
+  .cc-email .cc-icon svg{stroke:var(--orange);fill:none;}
+  .cc-linkedin .cc-icon{background:rgba(242,183,5,0.16);}
+  .cc-linkedin .cc-icon svg{stroke:var(--amber);fill:var(--amber);}
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    background:#0B0B0D;padding:3rem 6vw 2.2rem;
+    display:flex;flex-wrap:wrap;justify-content:space-between;gap:2rem;
+    border-top:1px solid var(--line);
+  }
+  .footer-brand .logo{font-size:1.3rem;}
+  .footer-brand p{color:var(--muted);font-size:0.9rem;margin-top:0.6rem;max-width:32ch;}
+  .footer-links{display:flex;gap:3rem;flex-wrap:wrap;}
+  .footer-col h4{font-size:0.85rem;color:var(--muted);font-weight:600;margin-bottom:0.8rem;}
+  .footer-col a{display:block;font-size:0.92rem;color:var(--paper);text-decoration:none;opacity:0.85;margin-bottom:0.55rem;}
+  .footer-col a:hover{opacity:1;}
+  .footer-bottom{
+    width:100%;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.8rem;
+    font-size:0.82rem;color:var(--muted);
+  }
+</style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen p-6">
-  <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-md border border-slate-200">
-    <h1 class="text-2xl font-bold text-indigo-600 mb-1">Zero-Backend ATS Matcher</h1>
-    <p class="text-xs text-slate-500 mb-6">Runs completely in-browser via Puter.js AI and PDF.js</p>
+<body>
 
-    <div class="space-y-4">
+<header class="nav">
+  <a href="#top" class="logo">ASYNC<span class="badge">11</span></a>
+  <nav class="links" id="navLinks">
+    <a class="navlink" href="#services">Work</a>
+    <a class="navlink" href="#process">Process</a>
+    <a class="navlink" href="#story">Studio</a>
+    <a class="navlink" href="#contact">Contact</a>
+    <a class="btn btn-outline" href="https://wa.me/918920337656" target="_blank" rel="noopener">WhatsApp us</a>
+  </nav>
+  <div class="nav-cta">
+    <a class="btn btn-outline" href="https://wa.me/918920337656" target="_blank" rel="noopener">WhatsApp us</a>
+    <a class="btn btn-primary" href="#contact">Start a project</a>
+    <button class="burger" id="burgerBtn" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="wrap hero-grid">
       <div>
-        <label class="block text-sm font-semibold mb-1">Job Description</label>
-        <textarea id="jd" rows="4" class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Paste the job description or required skills..."></textarea>
+        <h1>We build like it's the only shot we've got.</h1>
+        <p class="hero-sub">Async11 is a full-throttle tech studio — web, Android, cloud, AI, QA and the people to run it — for founders and companies who don't believe in half-measures.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#contact">Start a project</a>
+          <a class="btn btn-outline" href="https://wa.me/918920337656" target="_blank" rel="noopener">Talk to a human</a>
+        </div>
+
+        <div class="ticker-wrap">
+          <div class="ticker" id="tickerRow">
+            <span>Python</span><span>React</span><span>Kotlin</span><span>AWS</span><span>Azure</span>
+            <span>GCP</span><span>Kubernetes</span><span>Docker</span><span>TensorFlow</span><span>Node.js</span>
+            <span>PostgreSQL</span><span>Terraform</span>
+            <span>Python</span><span>React</span><span>Kotlin</span><span>AWS</span><span>Azure</span>
+            <span>GCP</span><span>Kubernetes</span><span>Docker</span><span>TensorFlow</span><span>Node.js</span>
+            <span>PostgreSQL</span><span>Terraform</span>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <label class="block text-sm font-semibold mb-1">Upload Resume (PDF)</label>
-        <input type="file" id="resume" accept="application/pdf" class="w-full text-sm p-2 border rounded-lg bg-slate-50">
+      <div class="dial-card" id="dialCard">
+        <div class="dial-outer">
+          <svg class="dial-svg" viewBox="0 0 220 220" id="dialSvg" aria-hidden="true">
+            <circle cx="110" cy="110" r="96" fill="none" stroke="rgba(245,241,232,0.10)" stroke-width="2"/>
+            <g id="ticks"></g>
+            <circle cx="110" cy="110" r="70" fill="var(--stage)" stroke="rgba(245,241,232,0.16)" stroke-width="1"/>
+            <g id="knobGroup">
+              <line x1="110" y1="110" x2="110" y2="52" stroke="var(--orange)" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="110" cy="110" r="9" fill="var(--orange)"/>
+            </g>
+          </svg>
+          <div class="dial-value" id="dialValue">0</div>
+          <div class="dial-knob-hit" id="dialHit"
+               role="slider" tabindex="0" aria-label="Brand intensity dial"
+               aria-valuemin="0" aria-valuemax="11" aria-valuenow="0"></div>
+        </div>
+        <p class="dial-caption" id="dialCaption">Most teams stop at ten. Drag it a little further.</p>
+        <div class="dial-cta"><a class="btn btn-primary" href="#contact">Now we're talking — start now</a></div>
       </div>
-
-      <button id="scanBtn" onclick="runATSCheck()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition">
-        Analyze Match Score
-      </button>
     </div>
+  </section>
 
-    <!-- Output Box -->
-    <div id="results" class="mt-6 pt-6 border-t hidden">
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-gray-600 font-medium">ATS Match Score</span>
-        <span id="score" class="text-3xl font-extrabold text-indigo-600">0%</span>
-      </div>
-
-      <div class="mb-4">
-        <span class="text-sm font-semibold text-rose-600 block mb-1">Missing Keywords & Skills:</span>
-        <ul id="keywords" class="list-disc list-inside text-sm text-slate-600 space-y-1"></ul>
-      </div>
-
+  <!-- STORY -->
+  <section class="story" id="story">
+    <div class="wrap story-grid">
       <div>
-        <span class="text-sm font-semibold text-slate-700 block mb-1">Improvement Summary:</span>
-        <p id="summary" class="text-sm text-slate-600 bg-slate-100 p-3 rounded-md"></p>
+        <div class="story-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M4 12a8 8 0 0 1 14.5-4.6M20 12a8 8 0 0 1-14.5 4.6"/>
+            <path d="M18 4v4h-4M6 20v-4h4"/>
+          </svg>
+        </div>
+        <h2>Built by people who got tired of waiting.</h2>
       </div>
+      <div class="story-body">
+        <p>Async11 started with a simple complaint: most tech shops treat you like a ticket number. A website team that's never heard from the app team. A QA process bolted on the week before launch. A hiring pipeline with no idea what the product actually needs.</p>
+        <p>So we built the thing we wished existed — one crew, wired together end to end, that can carry a brand from an idea on a napkin to a product running in production, and the people to keep it running after that.</p>
+        <p>No jargon walls, no forty-slide decks before anyone writes a line of code. Just engineers, designers and recruiters who care about your thing almost as much as you do — and know exactly how to ship it.</p>
+        <div class="story-tags">
+          <span>Founders</span><span>Startups</span><span>Growing teams</span><span>Enterprises</span><span>Solo builders</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES / RACK -->
+  <section class="rack" id="services">
+    <div class="wrap">
+      <div class="rack-head">
+        <h2>The full rack.</h2>
+        <p>Twelve channels, one crew. Flip whichever ones your brand needs — most clients run more than one at once.</p>
+      </div>
+
+      <div class="rack-groups">
+        <div>
+          <div class="rack-group-label">Build</div>
+          <div class="rack-grid" id="groupBuild"></div>
+        </div>
+        <div>
+          <div class="rack-group-label">Scale</div>
+          <div class="rack-grid" id="groupScale"></div>
+        </div>
+        <div>
+          <div class="rack-group-label">Assure &amp; automate</div>
+          <div class="rack-grid" id="groupAssure"></div>
+        </div>
+        <div>
+          <div class="rack-group-label">People &amp; strategy</div>
+          <div class="rack-grid" id="groupPeople"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section id="process">
+    <div class="wrap">
+      <div class="process-head">
+        <h2>How we run it.</h2>
+        <p>Four stages, one accountable crew the whole way through — nobody hands you off to a stranger halfway.</p>
+      </div>
+      <div class="process-path">
+        <div class="process-line"></div>
+        <div class="process-steps">
+          <div class="process-step">
+            <div class="num">1</div>
+            <h3>Discover</h3>
+            <p>We ask what you're actually trying to solve, not what feature you think you need.</p>
+          </div>
+          <div class="process-step">
+            <div class="num">2</div>
+            <h3>Architect</h3>
+            <p>Stack, timeline and budget laid out plainly, before anyone commits to anything.</p>
+          </div>
+          <div class="process-step">
+            <div class="num">3</div>
+            <h3>Build</h3>
+            <p>Short cycles, working software you can see every week, not just on launch day.</p>
+          </div>
+          <div class="process-step">
+            <div class="num">4</div>
+            <h3>Run</h3>
+            <p>QA, deployment and support that stick around after the invoice is paid.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto">
+    <div class="wrap manifesto-grid">
+      <div>
+        <h2>Some things we refuse to do.</h2>
+        <p class="manifesto-close">What we do instead: show up, write the code, answer the phone.</p>
+      </div>
+      <ul class="manifesto-list">
+        <li><span class="no">01</span> Ghost you after kickoff.</li>
+        <li><span class="no">02</span> Hand you a slideshow instead of a working demo.</li>
+        <li><span class="no">03</span> Bill you to explain what "MVP" means.</li>
+        <li><span class="no">04</span> Treat QA like an afterthought.</li>
+        <li><span class="no">05</span> Outsource the outsourcing.</li>
+        <li><span class="no">06</span> Build something we wouldn't run ourselves.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact" id="contact">
+    <div class="wrap contact-grid">
+      <div>
+        <h2>Let's crank this up.</h2>
+        <p class="contact-sub">Tell us what you're building and which channels you need. We'll open this straight in your email app, ready to send — no forms disappearing into a void.</p>
+
+        <form class="contact-form" id="contactForm">
+          <div class="form-row">
+            <div>
+              <label for="fName">Your name</label>
+              <input type="text" id="fName" name="name" required placeholder="Full name">
+            </div>
+            <div>
+              <label for="fEmail">Your email</label>
+              <input type="email" id="fEmail" name="email" required placeholder="you@company.com">
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label for="fCompany">Company / brand</label>
+              <input type="text" id="fCompany" name="company" placeholder="Optional">
+            </div>
+            <div>
+              <label for="fService">Which channel do you need?</label>
+              <select id="fService" name="service">
+                <option>IT Consulting</option>
+                <option>Web Development</option>
+                <option>Android Development</option>
+                <option>AWS Cloud Engineering</option>
+                <option>Azure Cloud Engineering</option>
+                <option>GCP Cloud Engineering</option>
+                <option>AI &amp; Machine Learning</option>
+                <option>AI Integration</option>
+                <option>Testing &amp; QA</option>
+                <option>Automation</option>
+                <option>Deployment &amp; DevOps</option>
+                <option>Staffing &amp; Recruiting</option>
+                <option>Not sure yet</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label for="fMessage">What are you building?</label>
+            <textarea id="fMessage" name="message" placeholder="Give us the short version — we'll ask smart questions after."></textarea>
+          </div>
+          <p class="form-note">This opens a pre-filled email to connect@async11.com in whichever mail app you use.</p>
+          <button type="submit" class="btn btn-primary form-submit">Send it over</button>
+        </form>
+      </div>
+
+      <div class="contact-side">
+        <a class="contact-card cc-whatsapp" href="https://wa.me/918920337656" target="_blank" rel="noopener">
+          <div class="cc-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2Zm5.6 14.2c-.2.6-1.3 1.2-1.9 1.3-.5.1-1.1.2-3.4-.8-2.9-1.2-4.7-4.1-4.9-4.3-.1-.2-1.1-1.5-1.1-2.8 0-1.3.7-2 1-2.2.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5.2.6.7 2 .8 2.1.1.2.1.4 0 .6-.4.8-.8.8-.4 1.4 1.4 2.1 2.5 2.5 2.8 2.6.3.1.5.1.7-.1.2-.2.7-.8.9-1.1.2-.3.4-.2.7-.1.3.1 2 .9 2.3 1.1.3.2.5.3.6.4.1.2.1.9-.1 1.5Z"/></svg>
+          </div>
+          <div>
+            <div class="cc-title">WhatsApp</div>
+            <div class="cc-sub">+91 89203 37656 — fastest way to reach us</div>
+          </div>
+        </a>
+
+        <a class="contact-card cc-email" href="mailto:connect@async11.com">
+          <div class="cc-icon">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18v12H3z" stroke-width="1.6"/><path d="m3 7 9 6 9-6" stroke-width="1.6"/></svg>
+          </div>
+          <div>
+            <div class="cc-title">Email</div>
+            <div class="cc-sub">connect@async11.com</div>
+          </div>
+        </a>
+
+        <a class="contact-card cc-linkedin" href="https://www.linkedin.com/company/144803663/" target="_blank" rel="noopener">
+          <div class="cc-icon">
+            <svg viewBox="0 0 24 24"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5ZM3 9h4v12H3zM9 9h3.8v1.7h.1c.5-.9 1.8-1.9 3.7-1.9 4 0 4.7 2.6 4.7 6V21h-4v-5.5c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9V21H9z"/></svg>
+          </div>
+          <div>
+            <div class="cc-title">LinkedIn</div>
+            <div class="cc-sub">Follow Async11's company page</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-brand">
+    <a href="#top" class="logo">ASYNC<span class="badge">11</span></a>
+    <p>A full-throttle IT, product and staffing studio for brands and builders who don't do half-measures.</p>
+  </div>
+  <div class="footer-links">
+    <div class="footer-col">
+      <h4>Studio</h4>
+      <a href="#services">Work</a>
+      <a href="#process">Process</a>
+      <a href="#story">Studio</a>
+    </div>
+    <div class="footer-col">
+      <h4>Reach us</h4>
+      <a href="mailto:connect@async11.com">connect@async11.com</a>
+      <a href="https://wa.me/918920337656" target="_blank" rel="noopener">+91 89203 37656</a>
+      <a href="https://www.linkedin.com/company/144803663/" target="_blank" rel="noopener">LinkedIn</a>
     </div>
   </div>
+  <div class="footer-bottom">
+    <span>© <span id="year"></span> Async11. All rights reserved.</span>
+    <span>Gurugram, India — working async across every time zone.</span>
+  </div>
+</footer>
 
-  <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cloudflare.com';
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
 
-    // 1. Extract text from uploaded PDF client-side
-    async function extractTextFromPDF(file) {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let text = '';
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        text += content.items.map(item => item.str).join(' ') + ' ';
-      }
-      return text;
-    }
+/* ---------- Mobile nav ---------- */
+const burger = document.getElementById('burgerBtn');
+const navLinks = document.getElementById('navLinks');
+burger.addEventListener('click', () => {
+  const open = navLinks.classList.toggle('open');
+  burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+  navLinks.classList.remove('open');
+  burger.setAttribute('aria-expanded', 'false');
+}));
 
-    // 2. Main matcher logic running entirely through open in-browser AI
-    async function runATSCheck() {
-      const jd = document.getElementById('jd').value.trim();
-      const file = document.getElementById('resume').files[0];
-      const btn = document.getElementById('scanBtn');
+/* ---------- Service channels ---------- */
+const iconPaths = {
+  consulting: 'M4 19h16M6 19V9l6-5 6 5v10M9 19v-6h6v6',
+  web: 'M3 5h18v14H3z M3 9h18 M7 5v0',
+  android: 'M8 6l-1.5-2M16 6l1.5-2 M6 9h12v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9Z M6 9V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2',
+  aws: 'M12 3v6M6 8l6 3 6-3M6 16l6 3 6-3M6 8v8l6 3 6-3V8',
+  azure: 'M9 3 3 19h6l3-8 6 8h3L13 3z',
+  gcp: 'M12 3a9 9 0 1 0 9 9M12 3v9h9',
+  ai: 'M12 3a4 4 0 0 0-4 4v1a3 3 0 0 0-2 5 3 3 0 0 0 2 5v1a4 4 0 0 0 8 0v-1a3 3 0 0 0 2-5 3 3 0 0 0-2-5V7a4 4 0 0 0-4-4Z',
+  integration: 'M8 12a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z M2 12h4M18 12h4',
+  qa: 'm5 12 4 4 10-10',
+  automation: 'M12 4v3M12 17v3M4 12h3M17 12h3M6.3 6.3l2 2M15.7 15.7l2 2M6.3 17.7l2-2M15.7 8.3l2-2 M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z',
+  deploy: 'M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6z M9 12l2 2 4-4',
+  staffing: 'M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2 M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M23 20v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75'
+};
 
-      if (!jd || !file) {
-        alert('Please provide both the Job Description and a PDF Resume.');
-        return;
-      }
+const channels = [
+  {group:'groupBuild', icon:'web', title:'Web Development', body:"Fast, responsive sites and web apps that don't buckle under real traffic."},
+  {group:'groupBuild', icon:'android', title:'Android Development', body:"Native Android apps built for the Play Store, not just the demo."},
+  {group:'groupBuild', icon:'ai', title:'AI & Machine Learning', body:"Models that solve an actual problem, not a slide in a pitch deck."},
+  {group:'groupBuild', icon:'integration', title:'AI Integration', body:"Wiring AI into your existing product without breaking what already works."},
+  {group:'groupScale', icon:'aws', title:'AWS Cloud Engineering', body:"Infrastructure that scales at 3am without anyone getting a call."},
+  {group:'groupScale', icon:'azure', title:'Azure Cloud Engineering', body:"Enterprise-grade cloud, wired into whatever you already run on Microsoft."},
+  {group:'groupScale', icon:'gcp', title:'GCP Cloud Engineering', body:"Data-heavy, AI-ready infrastructure on Google's stack."},
+  {group:'groupScale', icon:'deploy', title:'Deployment & DevOps', body:"CI/CD pipelines and releases that ship on a Friday without fear."},
+  {group:'groupAssure', icon:'qa', title:'Testing & QA', body:"We break it before your users do."},
+  {group:'groupAssure', icon:'automation', title:'Automation', body:"The repetitive stuff, running itself while your team does the interesting work."},
+  {group:'groupPeople', icon:'staffing', title:'Staffing & Recruiting', body:"Engineers and specialists who fit your team, not just your job description."},
+  {group:'groupPeople', icon:'consulting', title:'IT Consulting', body:"Strategy, architecture and a straight answer on what to build first."}
+];
 
-      btn.disabled = true;
-      btn.innerText = 'Extracting and Analyzing...';
+channels.forEach((c, i) => {
+  const container = document.getElementById(c.group);
+  const details = document.createElement('details');
+  details.className = 'channel';
+  details.innerHTML = `
+    <summary>
+      <span class="chan-num">${String(i+1).padStart(2,'0')}</span>
+      <span class="chan-icon"><svg viewBox="0 0 24 24"><path d="${iconPaths[c.icon]}"/></svg></span>
+      <span class="chan-title">${c.title}</span>
+      <span class="switch"></span>
+    </summary>
+    <div class="chan-body">${c.body}</div>
+  `;
+  details.addEventListener('toggle', () => {
+    details.classList.toggle('on', details.open);
+  });
+  container.appendChild(details);
+});
 
-      try {
-        const resumeText = await extractTextFromPDF(file);
+/* ---------- Dial ---------- */
+const dialCard = document.getElementById('dialCard');
+const dialHit = document.getElementById('dialHit');
+const dialValue = document.getElementById('dialValue');
+const dialCaption = document.getElementById('dialCaption');
+const knobGroup = document.getElementById('knobGroup');
+const ticksGroup = document.getElementById('ticks');
+const dialSvg = document.getElementById('dialSvg');
 
-        // Puter.js AI Call - executes directly without an API key or server
-        const prompt = `
-          Act as an Applicant Tracking System (ATS) matching algorithm.
-          Compare the resume against the job description.
+const MIN_A = -150, MAX_A = 150, MAX_V = 11;
+const captions = {
+  low: "Most teams stop at ten. Drag it a little further.",
+  mid: "Careful — this thing doesn't stop at ten.",
+  max: "Now we're talking. Tell us what you're building."
+};
 
-          JOB DESCRIPTION:
-          ${jd}
+function angleForValue(v){ return MIN_A + (v / MAX_V) * (MAX_A - MIN_A); }
 
-          RESUME CONTENT:
-          ${resumeText}
+// draw ticks 0..11
+for(let v=0; v<=MAX_V; v++){
+  const a = (angleForValue(v) - 90) * Math.PI/180;
+  const r1 = 96, r2 = 86;
+  const x1 = 110 + r1*Math.cos(a), y1 = 110 + r1*Math.sin(a);
+  const x2 = 110 + r2*Math.cos(a), y2 = 110 + r2*Math.sin(a);
+  const tick = document.createElementNS('http://www.w3.org/2000/svg','line');
+  tick.setAttribute('x1', x1); tick.setAttribute('y1', y1);
+  tick.setAttribute('x2', x2); tick.setAttribute('y2', y2);
+  tick.setAttribute('stroke', v === 11 ? 'var(--amber)' : 'rgba(245,241,232,0.35)');
+  tick.setAttribute('stroke-width', v === 11 ? '3' : '2');
+  ticksGroup.appendChild(tick);
+}
 
-          Respond with ONLY a raw JSON object formatted like this:
-          {
-            "score": 85,
-            "missing_keywords": ["keyword1", "keyword2"],
-            "summary": "Brief 2-sentence optimization tip."
-          }
-        `;
+let currentValue = 0;
+let dragging = false;
 
-        const response = await puter.ai.chat(prompt);
-        const parsed = JSON.parse(response.toString().replace(/```json|```/g, '').trim());
+function setValue(v, {snap=false} = {}){
+  v = Math.max(0, Math.min(MAX_V, v));
+  currentValue = v;
+  const displayed = snap ? Math.round(v) : v;
+  const angle = angleForValue(displayed);
+  knobGroup.setAttribute('transform', `rotate(${angle} 110 110)`);
+  dialValue.textContent = Math.round(displayed);
+  dialHit.setAttribute('aria-valuenow', Math.round(displayed));
 
-        // Update UI
-        document.getElementById('score').innerText = `${parsed.score}%`;
-        const list = document.getElementById('keywords');
-        list.innerHTML = '';
-        parsed.missing_keywords.forEach(kw => {
-          const li = document.createElement('li');
-          li.innerText = kw;
-          list.appendChild(li);
-        });
-        document.getElementById('summary').innerText = parsed.summary;
-        document.getElementById('results').classList.remove('hidden');
+  const maxed = Math.round(displayed) >= MAX_V;
+  dialCard.classList.toggle('maxed', maxed);
+  if(maxed){
+    dialCaption.textContent = captions.max;
+    spawnSparks();
+  } else if (displayed >= 6){
+    dialCaption.textContent = captions.mid;
+  } else {
+    dialCaption.textContent = captions.low;
+  }
+}
 
-      } catch (err) {
-        alert('Error processing file. Ensure your resume contains parsable text.');
-        console.error(err);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'Analyze Match Score';
-      }
-    }
-  </script>
+let sparkFired = false;
+function spawnSparks(){
+  if(sparkFired) return;
+  sparkFired = true;
+  const outer = dialCard.querySelector('.dial-outer');
+  for(let i=0;i<10;i++){
+    const s = document.createElement('span');
+    s.className = 'spark';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 60 + Math.random()*40;
+    s.style.setProperty('--dx', Math.cos(angle)*dist + 'px');
+    s.style.setProperty('--dy', Math.sin(angle)*dist + 'px');
+    s.style.left = '50%';
+    s.style.top = '10%';
+    outer.appendChild(s);
+    setTimeout(() => s.remove(), 950);
+  }
+  setTimeout(() => sparkFired = false, 1200);
+}
+
+function angleFromPointer(clientX, clientY){
+  const rect = dialSvg.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  let deg = Math.atan2(clientY - cy, clientX - cx) * 180/Math.PI + 90;
+  if(deg > 180) deg -= 360;
+  if(deg < -180) deg += 360;
+  deg = Math.max(MIN_A, Math.min(MAX_A, deg));
+  return deg;
+}
+
+function pointerToValue(clientX, clientY){
+  const deg = angleFromPointer(clientX, clientY);
+  return ((deg - MIN_A) / (MAX_A - MIN_A)) * MAX_V;
+}
+
+dialHit.addEventListener('pointerdown', (e) => {
+  dragging = true;
+  dialHit.setPointerCapture(e.pointerId);
+  setValue(pointerToValue(e.clientX, e.clientY));
+});
+dialHit.addEventListener('pointermove', (e) => {
+  if(!dragging) return;
+  setValue(pointerToValue(e.clientX, e.clientY));
+});
+function endDrag(e){
+  if(!dragging) return;
+  dragging = false;
+  setValue(Math.round(currentValue), {snap:true});
+}
+dialHit.addEventListener('pointerup', endDrag);
+dialHit.addEventListener('pointercancel', endDrag);
+
+dialHit.addEventListener('keydown', (e) => {
+  if(e.key === 'ArrowRight' || e.key === 'ArrowUp'){ e.preventDefault(); setValue(Math.round(currentValue)+1, {snap:true}); }
+  if(e.key === 'ArrowLeft' || e.key === 'ArrowDown'){ e.preventDefault(); setValue(Math.round(currentValue)-1, {snap:true}); }
+  if(e.key === 'Home'){ e.preventDefault(); setValue(0, {snap:true}); }
+  if(e.key === 'End'){ e.preventDefault(); setValue(11, {snap:true}); }
+});
+
+setValue(0, {snap:true});
+
+/* ---------- Contact form -> mailto ---------- */
+const form = document.getElementById('contactForm');
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('fName').value.trim();
+  const email = document.getElementById('fEmail').value.trim();
+  const company = document.getElementById('fCompany').value.trim();
+  const service = document.getElementById('fService').value;
+  const message = document.getElementById('fMessage').value.trim();
+
+  const subject = `New project inquiry — ${service}${company ? ' — ' + company : ''}`;
+  const bodyLines = [
+    `Name: ${name}`,
+    `Email: ${email}`,
+    company ? `Company: ${company}` : null,
+    `Channel: ${service}`,
+    '',
+    message || '(no message provided)'
+  ].filter(Boolean);
+
+  const mailto = `mailto:connect@async11.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines.join('\n'))}`;
+  window.location.href = mailto;
+});
+</script>
+
 </body>
 </html>
